@@ -3,8 +3,12 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import Button from "./Button";
 
 export default function AllExpenses() {
-    const { deleteExpense, expenses } = useOutletContext();
+
+    const { deleteExpense, expenses , selectedExpense , handleSelectedExpense} = useOutletContext();
     const navigate = useNavigate();
+
+
+
 
     return (
         <div className="flex flex-col gap-4 pt-2">
@@ -31,6 +35,8 @@ export default function AllExpenses() {
                     key={expense.id}
                     expense={expense}
                     onDelete={deleteExpense}
+                    onSelectExpense = {handleSelectedExpense}
+                    selectedExpense = {selectedExpense}
                 />
             ))}
         </div>
