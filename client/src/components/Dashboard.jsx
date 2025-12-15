@@ -1,7 +1,5 @@
 import Button from "./Button.jsx";
 import {Outlet, useNavigate} from "react-router-dom";
-import SummaryCard from "./SummaryCard.jsx";
-import ExpenseList from "./ExpenseList.jsx";
 import AddExpense from "./AddExpense.jsx";
 import {useState} from "react";
 import Modal from "./Modal.jsx";
