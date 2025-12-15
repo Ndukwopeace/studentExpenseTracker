@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+
+.app{
+    font-family: Inter, sans-serif;
+    height: 100vh;
+}
