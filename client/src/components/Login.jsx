@@ -22,7 +22,7 @@ export default function Login(){
     return (
         <div className="flex flex-col justify-center h-full">
             <Logo/>
-            <Form handleSubmit={handleLogin} className="flex flex-col gap-6" >
+            <Form onSubmit={handleLogin} className="flex flex-col gap-6" >
                 <Input  type="email" placeholder="Email" onChange={(e)=>setEmail(e.target.value)} required/>
                 <Input type="password" placeholder="Password" onChange={(e)=>setPassword(e.target.value)} required/>
                 <Button type="submit" className="bg-teal-500 text-white">Login</Button>
