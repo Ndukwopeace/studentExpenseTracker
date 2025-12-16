@@ -5,13 +5,26 @@ import {useState} from "react";
 import {getTodayString} from "../utils/DateConverter.js";
 
 export default function AddExpense({expenses , onSetExpenses , onsetShowModal}){
-    const [amount , setAmount] = useState(0);
+    const [amount , setAmount] = useState(null);
     const [category , setCategory] = useState("");
     const [description , setDescription] = useState("");
 
 
     function handleSubmit(e){
         e.preventDefault();
+
+        if (!amount) {
+            alert("Amount should not be empty");
+            return;
+        }else if (amount <= 0){
+            alert("Amount should not be less than or equals to zero");
+            return;
+        }else if (category === ""){
+            alert("Choose a category");
+            return;
+        }
+
+
         const newExpense = {
             id: expenses.length + 1,
             date: getTodayString(),
@@ -39,7 +52,8 @@ export default function AddExpense({expenses , onSetExpenses , onsetShowModal}){
                     <option value={"Transport"}>🚎 Transport</option>
                     <option value={"Internet"}>🟢 Internet</option>
                 </select>
-                <textarea value={description} onChange={(e)=>setDescription(e.target.value)} placeholder="Add a short note"  className="w-[100%] p-2.5"/>
+                <textarea value={description} onChange={(e)=>setDescription(e.target.value)}
+                          placeholder="Add a short note"  className="w-[100%] p-2.5"/>
                 <Button type="submit">Save</Button>
             </Form>
         </div>
