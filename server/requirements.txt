@@ -1,4 +1,45 @@
+# Core
 Flask
-Flask-SQLAlchemy
-Flask-JWT-Extended
 Werkzeug
+Jinja2
+itsdangerous
+click
+blinker
+
+# Database & ORM
+SQLAlchemy
+Flask-SQLAlchemy
+Flask-Migrate
+alembic
+psycopg2-binary
+
+# Authentication & Security
+Flask-JWT-Extended
+PyJWT
+bcrypt
+Flask-Bcrypt
+Flask-Login
+
+# Forms & Validation
+Flask-WTF
+WTForms
+
+# Email & Uploads
+Flask-Mail
+Flask-Uploads
+
+# CORS & Environment
+flask-cors
+python-dotenv
+
+# Server (REQUIRED for Render)
+gunicorn
+
+# Testing (optional but safe to keep)
+pytest
+iniconfig
+pluggy
+packaging
+typing_extensions
+MarkupSafe
+Mako
