@@ -23,7 +23,7 @@ def create_app():
     app.register_blueprint(category_bp)
 
     with app.app_context():
-        db.create_all()
+        # db.create_all()
         seed_categories()
 
     return app
