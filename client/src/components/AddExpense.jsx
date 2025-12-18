@@ -1,61 +1,122 @@
 import Form from "./Form.jsx";
 import Input from "./Input.jsx";
 import Button from "./Button.jsx";
-import {useState} from "react";
-import {getTodayString} from "../utils/DateConverter.js";
+import { useEffect, useState } from "react";
+import { getTodayString } from "../utils/DateConverter.js";
+import api from "../api/api.js";
 
-export default function AddExpense({expenses , onSetExpenses , onsetShowModal}){
-    const [amount , setAmount] = useState(null);
-    const [category , setCategory] = useState("");
-    const [description , setDescription] = useState("");
+export default function AddExpense({ onSetExpenses, onsetShowModal, editExpense, updateExpense }) {
+    const [amount, setAmount] = useState("");
+    const [categoryId, setCategoryId] = useState("");
+    const [description, setDescription] = useState("");
+    const [categories, setCategories] = useState([]);
+    const [error, setError] = useState("");
 
+    // Load categories from backend
+    useEffect(() => {
+        async function fetchCategories() {
+            try {
+                const res = await api.get("/categories/");
+                setCategories(res.data);
+            } catch {
+                setError("Failed to load categories");
+            }
+        }
+        fetchCategories();
+    }, []);
 
-    function handleSubmit(e){
+    // Populate form if editing
+    useEffect(() => {
+        if (editExpense) {
+            setAmount(editExpense.amount);
+            setDescription(editExpense.description || "");
+            setCategoryId(editExpense.category.id);
+        } else {
+            setAmount("");
+            setDescription("");
+            setCategoryId("");
+        }
+    }, [editExpense]);
+
+    async function handleSubmit(e) {
         e.preventDefault();
+        setError("");
 
-        if (!amount) {
-            alert("Amount should not be empty");
-            return;
-        }else if (amount <= 0){
-            alert("Amount should not be less than or equals to zero");
-            return;
-        }else if (category === ""){
-            alert("Choose a category");
+        if (!amount || Number(amount) <= 0) {
+            setError("Amount must be greater than zero");
             return;
         }
 
+        if (!categoryId) {
+            setError("Please select a category");
+            return;
+        }
 
-        const newExpense = {
-            id: expenses.length + 1,
+        const payload = {
+            description,
+            amount: Number(amount),
+            category_id: categoryId,
             date: getTodayString(),
-            amount: amount,
-            description: description,
-            category: category
-        }
+        };
 
-        console.log(newExpense);
-        onSetExpenses(newExpense);
-        onsetShowModal(false);
+        try {
+            if (editExpense) {
+                // Update existing expense
+                await updateExpense(editExpense.id, payload);
+            } else {
+                // Create new expense
+                const res = await api.post("/expenses/", payload);
+                onSetExpenses(res.data); // Add new expense to state
+            }
+
+            onsetShowModal(false);
+        } catch (err) {
+            setError(err.response?.data?.error || "Failed to save expense");
+        }
     }
 
+    return (
+        <div className="flex flex-col gap-3">
+            <h3 className="text-2xl">{editExpense ? "Edit Expense" : "Add Expense"}</h3>
 
+            {error && (
+                <div className="bg-red-100 text-red-600 p-2 rounded text-sm">
+                    {error}
+                </div>
+            )}
 
-    return(
-        <div className="flex flex-col gap-2">
-            <h3 className="text-2xl">Add Expense</h3>
             <Form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                <Input placeholder="Amount (XAF)" type="number" value={amount} onChange={(e)=>setAmount(e.target.value)}/>
-                <select className="p-3" value={category} onChange={(e)=>setCategory(e.target.value)}>
-                    <option>Select Category</option>
-                    <option value={"Food"}>🍔 Food</option>
-                    <option value={"Housing"}>🏠 Housing</option>
-                    <option value={"Transport"}>🚎 Transport</option>
-                    <option value={"Internet"}>🟢 Internet</option>
+                <Input
+                    placeholder="Amount (XAF)"
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    required
+                />
+
+                <select
+                    className="p-3 rounded-xl"
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(Number(e.target.value))}
+                    required
+                >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                            {cat.emoji} {cat.name}
+                        </option>
+                    ))}
                 </select>
-                <textarea value={description} onChange={(e)=>setDescription(e.target.value)}
-                          placeholder="Add a short note"  className="w-[100%] p-2.5"/>
-                <Button type="submit">Save</Button>
+
+                <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Add a short note"
+                    className="w-full p-2.5 rounded-xl"
+                />
+
+                <Button type="submit">{editExpense ? "Update" : "Save"}</Button>
             </Form>
         </div>
-    )
+    );
 }

@@ -1,61 +1,105 @@
 import Button from "./Button.jsx";
-import {Outlet, useNavigate} from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import AddExpense from "./AddExpense.jsx";
-import {useState} from "react";
+import { useEffect, useState } from "react";
 import Modal from "./Modal.jsx";
+import api from "../api/api.js";
 
-import {studentExpenses} from "../data/studentExpense.js";
-
-export default function Dashboard(){
-    const [selectedExpense , setSelectedExpense] = useState(null);
-    const navigate = useNavigate();
+export default function Dashboard() {
+    const [selectedExpense, setSelectedExpense] = useState(null);
     const [showModal, setShowModal] = useState(false);
-    const [expenses , setExpenses] = useState(studentExpenses)
+    const [expenses, setExpenses] = useState([]);
+    const [editExpense, setEditExpense] = useState(null); // For editing
+    const navigate = useNavigate();
 
+    // Fetch all expenses
+    useEffect(() => {
+        async function fetchExpenses() {
+            try {
+                const res = await api.get("/expenses/");
+                setExpenses(res.data);
+            } catch {
+                console.error("Failed to fetch expenses");
+            }
+        }
+        fetchExpenses();
+    }, []);
 
-    function handleSelectedExpense(id){
-        selectedExpense === id ? setSelectedExpense(null) :
-            setSelectedExpense(id);
-
+    // Delete expense
+    async function deleteExpense(id) {
+        try {
+            await api.delete(`/expenses/${id}`);
+            setExpenses(prev => prev.filter(exp => exp.id !== id));
+        } catch {
+            console.error("Failed to delete expense");
+        }
     }
 
-    function deleteExpense(id) {
-        setExpenses(expenses.filter(exp => exp.id !== id));
+    // Edit expense
+    async function updateExpense(id, updatedData) {
+        try {
+            const res = await api.put(`/expenses/${id}`, updatedData);
+            setExpenses(prev =>
+                prev.map(exp => (exp.id === id ? { ...exp, ...updatedData } : exp))
+            );
+            setEditExpense(null);
+        } catch {
+            console.error("Failed to update expense");
+        }
     }
 
-    function getTotalExpense(){
-        return expenses.reduce((acc , exp)=> Number(exp.amount) + acc, 0)
+    function handleLogout() {
+        localStorage.removeItem("token");
+        navigate("/");
     }
 
-    const totalExpense = getTotalExpense();
-
-
-
-    function handleLogout(){
-       navigate('/');
+    function handleSetExpense(newExpense) {
+        setExpenses(prev => [...prev, newExpense]);
     }
 
-    function handleSetExpense(newExpense){
-        setExpenses((prevExp)=>[...prevExp , newExpense])
+    const totalExpense = expenses.reduce(
+        (acc, exp) => acc + (Number(exp.amount) || 0),
+        0
+    );
+
+    function handleSelectedExpense(id) {
+        setSelectedExpense(prev => (prev === id ? null : id));
     }
 
-
-    return(
+    return (
         <div>
-            <Outlet context={{handleLogout , expenses , deleteExpense , totalExpense ,
-                handleSelectedExpense , selectedExpense}}/>
+            <Outlet
+                context={{
+                    handleLogout,
+                    expenses,
+                    deleteExpense,
+                    totalExpense,
+                    selectedExpense,
+                    handleSelectedExpense,
+                    editExpense,
+                    setEditExpense,
+                    updateExpense
+                }}
+            />
 
-            <Button className="fixed bottom-6 right-6 w-14 h-14 rounded-full
-                flex items-center justify-center shadow-lg" onClick={() => setShowModal(true)}>
+            <Button
+                className="fixed bottom-6 right-6 w-14 h-14 rounded-full"
+                onClick={() => {
+                    setEditExpense(null);
+                    setShowModal(true);
+                }}
+            >
                 +
             </Button>
 
-            <Modal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-            >
-                <AddExpense  expenses={expenses} onSetExpenses={handleSetExpense} onsetShowModal={setShowModal} />
+            <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
+                <AddExpense
+                    onSetExpenses={handleSetExpense}
+                    onsetShowModal={setShowModal}
+                    editExpense={editExpense}
+                    updateExpense={updateExpense}
+                />
             </Modal>
         </div>
-    )
+    );
 }

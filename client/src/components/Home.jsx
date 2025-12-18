@@ -14,6 +14,11 @@ export default function Home(){
 
     const todayExpenses = expenses.filter((exp)=> exp.date === today);
 
+    // const todayExpenses = expenses.filter(
+    //     (exp) => exp.date.slice(0, 10) === today
+    // );
+
+
     return (
         <div className="flex flex-col gap-4 pt-2 ">
             <Button onClick={handleLogout} className="bg-teal-500">Logout</Button>
